@@ -14,7 +14,7 @@ type nvgParams interface {
 	renderUpdateTexture(image, x, y, w, h int, data []byte) error
 	renderGetTextureSize(image int) (int, int, error)
 	renderViewport(width, height int)
-	renderCancel()
+	renderCancel() // TODO: remove
 	renderFlush()
 	renderFill(paint *Paint, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath)
 	renderStroke(paint *Paint, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath)
@@ -61,15 +61,11 @@ type nvgScissor struct {
 type nvgState struct {
 	fill, stroke  Paint
 	strokeWidth   float32
-	miterLimit    float32
-	lineJoin      LineCap
-	lineCap       LineCap
 	xform         TransformMatrix
 	scissor       nvgScissor
 	fontSize      float32
 	letterSpacing float32
 	lineHeight    float32
-	fontBlur      float32
 	textAlign     Align
 	fontID        int
 }
@@ -78,9 +74,6 @@ func (s *nvgState) reset() {
 	s.fill.setPaintColor(color.NRGBA{R: 255, G: 255, B: 255, A: 255})
 	s.stroke.setPaintColor(color.NRGBA{A: 255})
 	s.strokeWidth = 1.0
-	s.miterLimit = 10.0
-	s.lineCap = Butt
-	s.lineJoin = Miter
 	s.xform = IdentityMatrix()
 	s.scissor.xform = IdentityMatrix()
 	s.scissor.xform[0] = 0.0
@@ -91,7 +84,6 @@ func (s *nvgState) reset() {
 	s.fontSize = 16.0
 	s.letterSpacing = 0.0
 	s.lineHeight = 1.0
-	s.fontBlur = 0.0
 	s.textAlign = AlignLeft | AlignBaseline
 	s.fontID = fontstashmini.INVALID
 }

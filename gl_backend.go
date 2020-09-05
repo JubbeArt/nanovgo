@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/shibukawa/nanovgo/fontstashmini"
+
 	"github.com/goxjs/gl"
 )
 
@@ -23,7 +25,29 @@ func NewContext(flags CreateFlags) (*Context, error) {
 			flags: flags,
 		},
 	}
-	return createInternal(params)
+
+	context := &Context{
+		params:     params,
+		states:     make([]nvgState, 0, nvgMaxStates),
+		fontImages: make([]int, nvgMaxFontImages),
+		commands:   make([]float32, 0, nvgInitCommandsSize),
+		cache: nvgPathCache{
+			points:   make([]nvgPoint, 0, nvgInitPointsSize),
+			paths:    make([]nvgPath, 0, nvgInitPathsSize),
+			vertexes: make([]nvgVertex, 0, nvgInitVertsSize),
+		},
+	}
+	context.Save()
+	context.getState().reset()
+	context.setDevicePixelRatio(1.0)
+	context.params.renderCreate()
+
+	context.fs = fontstashmini.New(nvgInitFontImageSize, nvgInitFontImageSize)
+
+	context.fontImages[0] = context.params.renderCreateTexture(nvgTextureALPHA, nvgInitFontImageSize, nvgInitFontImageSize, 0, nil)
+	context.fontImageIdx = 0
+
+	return context, nil
 }
 
 type glShader struct {

@@ -19,29 +19,6 @@ func TranslateMatrix(tx, ty float32) TransformMatrix {
 	return TransformMatrix{1.0, 0.0, 0.0, 1.0, tx, ty}
 }
 
-// ScaleMatrix makes the transform to scale matrix.
-func ScaleMatrix(sx, sy float32) TransformMatrix {
-	return TransformMatrix{sx, 0.0, 0.0, sy, 0.0, 0.0}
-}
-
-// RotateMatrix makes the transform to rotate matrix. Angle is specified in radians.
-func RotateMatrix(a float32) TransformMatrix {
-	sin, cos := math.Sincos(float64(a))
-	sinF := float32(sin)
-	cosF := float32(cos)
-	return TransformMatrix{cosF, sinF, -sinF, cosF, 0.0, 0.0}
-}
-
-// SkewXMatrix makes the transform to skew-x matrix. Angle is specified in radians.
-func SkewXMatrix(a float32) TransformMatrix {
-	return TransformMatrix{1.0, 0.0, float32(math.Tan(float64(a))), 1.0, 0.0, 0.0}
-}
-
-// SkewYMatrix makes the transform to skew-y matrix. Angle is specified in radians.
-func SkewYMatrix(a float32) TransformMatrix {
-	return TransformMatrix{1.0, float32(math.Tan(float64(a))), 0.0, 1.0, 0.0, 0.0}
-}
-
 // Multiply makes the transform to the result of multiplication of two transforms, of A = A*B.
 func (t TransformMatrix) Multiply(s TransformMatrix) TransformMatrix {
 	t0 := t[0]*s[0] + t[1]*s[2]
