@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"runtime"
 
 	"github.com/go-gl/gl/v2.1/gl"
@@ -46,12 +47,16 @@ func main() {
 
 		ctx.BeginFrame(winWidth, winHeight, pixelRatio)
 
-		ctx.BeginPath()
+		draw := func(x float32, c color.Color) {
+			ctx.BeginPath()
+			ctx.SetFillColor(c)
+			ctx.Rect(x, 50, 100, 100)
+			ctx.Fill()
+		}
 
-		ctx.SetFillColor(nanovgo.RGB(255, 0, 0))
-		//ctx.SetFillColor(colornames.Red)
-		ctx.Rect(50, 50, 100, 100)
-		ctx.Fill()
+		for i := 0; i < 5; i++ {
+			draw(float32(i)*100, color.NRGBA{R: 255, A: uint8(i) * 50})
+		}
 
 		ctx.EndFrame()
 

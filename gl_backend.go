@@ -3,8 +3,9 @@ package nanovgo
 import (
 	"errors"
 	"fmt"
-	"github.com/goxjs/gl"
 	"strings"
+
+	"github.com/goxjs/gl"
 )
 
 const (
@@ -206,8 +207,8 @@ func (c *glContext) allocTexture() *glTexture {
 }
 
 func (c *glContext) convertPaint(frag *glFragUniforms, paint *Paint, scissor *nvgScissor, width, fringe, strokeThr float32) error {
-	frag.setInnerColor(paint.innerColor)
-	frag.setOuterColor(paint.outerColor)
+	frag.setInnerColor(paint.color)
+	frag.setOuterColor(paint.color) // TODO: remove
 
 	if scissor.extent[0] < -0.5 || scissor.extent[1] < -0.5 {
 		frag.clearScissorMat()
@@ -221,7 +222,7 @@ func (c *glContext) convertPaint(frag *glFragUniforms, paint *Paint, scissor *nv
 		scaleY := sqrtF(xform[1]*xform[1]+xform[3]*xform[3]) / fringe
 		frag.setScissorScale(scaleX, scaleY)
 	}
-	frag.setExtent(paint.extent)
+	frag.setExtent([2]float32{0, 0}) // TODO: remove
 	frag.setStrokeMult((width*0.5 + fringe*0.5) / fringe)
 	frag.setStrokeThr(strokeThr)
 
@@ -230,11 +231,7 @@ func (c *glContext) convertPaint(frag *glFragUniforms, paint *Paint, scissor *nv
 		if tex == nil {
 			return errors.New("invalid texture in GLParams.convertPaint")
 		}
-		if tex.flags&ImageFlippy != 0 {
-			frag.setPaintMat(ScaleMatrix(1.0, -1.0).Multiply(paint.xform).Inverse().ToMat3x4())
-		} else {
-			frag.setPaintMat(paint.xform.Inverse().ToMat3x4())
-		}
+		frag.setPaintMat(IdentityMatrix().ToMat3x4())
 		frag.setType(nsvgShaderFILLIMG)
 
 		if tex.texType == nvgTextureRGBA {
@@ -248,9 +245,9 @@ func (c *glContext) convertPaint(frag *glFragUniforms, paint *Paint, scissor *nv
 		}
 	} else {
 		frag.setType(nsvgShaderFILLGRAD)
-		frag.setRadius(paint.radius)
-		frag.setFeather(paint.feather)
-		frag.setPaintMat(paint.xform.Inverse().ToMat3x4())
+		frag.setRadius(0)
+		frag.setFeather(1)
+		frag.setPaintMat(IdentityMatrix().Inverse().ToMat3x4())
 	}
 
 	return nil

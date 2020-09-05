@@ -343,7 +343,6 @@ func (c *Context) SetStrokeColor(color color.Color) {
 func (c *Context) SetStrokePaint(paint Paint) {
 	state := c.getState()
 	state.stroke = paint
-	state.stroke.xform = state.stroke.xform.Multiply(state.xform)
 }
 
 // SetFillColor sets current fill style to a solid color.
@@ -355,7 +354,6 @@ func (c *Context) SetFillColor(color color.Color) {
 func (c *Context) SetFillPaint(paint Paint) {
 	state := c.getState()
 	state.fill = paint
-	state.fill.xform = state.fill.xform.Multiply(state.xform)
 }
 
 // CreateImage creates image by loading it from the disk from specified file name.
