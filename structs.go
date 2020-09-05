@@ -1,6 +1,8 @@
 package nanovgo
 
 import (
+	"image/color"
+
 	"github.com/shibukawa/nanovgo/fontstashmini"
 )
 
@@ -62,7 +64,6 @@ type nvgState struct {
 	miterLimit    float32
 	lineJoin      LineCap
 	lineCap       LineCap
-	alpha         float32
 	xform         TransformMatrix
 	scissor       nvgScissor
 	fontSize      float32
@@ -74,13 +75,12 @@ type nvgState struct {
 }
 
 func (s *nvgState) reset() {
-	s.fill.setPaintColor(RGBA(255, 255, 255, 255))
-	s.stroke.setPaintColor(RGBA(0, 0, 0, 255))
+	s.fill.setPaintColor(color.NRGBA{R: 255, G: 255, B: 255, A: 255})
+	s.stroke.setPaintColor(color.NRGBA{A: 255})
 	s.strokeWidth = 1.0
 	s.miterLimit = 10.0
 	s.lineCap = Butt
 	s.lineJoin = Miter
-	s.alpha = 1.0
 	s.xform = IdentityMatrix()
 	s.scissor.xform = IdentityMatrix()
 	s.scissor.xform[0] = 0.0

@@ -41,22 +41,6 @@ func clampI(a, min, max int) int {
 	return a
 }
 
-func hue(h, m1, m2 float32) float32 {
-	if h < 0.0 {
-		h++
-	} else if h > 1 {
-		h--
-	}
-	if h < 1.0/6.0 {
-		return m1 + (m2-m1)*h*6.0
-	} else if h < 3.0/6.0 {
-		return m2
-	} else if h < 4.0/6.0 {
-		return m1 + (m2-m1)*(2.0/3.0-h)*6.0
-	}
-	return m1
-}
-
 func minF(a, b float32) float32 {
 	if a < b {
 		return a
@@ -76,26 +60,6 @@ func maxI(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func maxFs(v float32, values ...float32) float32 {
-	max := v
-	for _, value := range values {
-		if max < value {
-			max = value
-		}
-	}
-	return max
-}
-
-func minFs(v float32, values ...float32) float32 {
-	min := v
-	for _, value := range values {
-		if min > value {
-			min = value
-		}
-	}
-	return min
 }
 
 func cross(dx0, dy0, dx1, dy1 float32) float32 {
@@ -438,6 +402,7 @@ func nearestPow2(num int) int {
 	n |= n >> 8
 	n |= n >> 16
 	n++
+	// TODO: fix bug, should be n
 	return int(num)
 }
 

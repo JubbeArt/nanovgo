@@ -2,6 +2,7 @@ package nanovgo
 
 import (
 	"github.com/goxjs/gl"
+	"image/color"
 )
 
 const (
@@ -61,12 +62,18 @@ func (u *glFragUniforms) setPaintMat(mat []float32) {
 	copy(u[12:24], mat[0:12])
 }
 
-func (u *glFragUniforms) setInnerColor(color Color) {
-	copy(u[24:28], color.List())
+func colorToList(color color.Color) []float32 {
+	r, g, b, a := color.RGBA()
+	const max = 65536
+	return []float32{float32(r) / max, float32(g) / max, float32(b) / max, float32(a) / max}
 }
 
-func (u *glFragUniforms) setOuterColor(color Color) {
-	copy(u[28:32], color.List())
+func (u *glFragUniforms) setInnerColor(color color.Color) {
+	copy(u[24:28], colorToList(color))
+}
+
+func (u *glFragUniforms) setOuterColor(color color.Color) {
+	copy(u[28:32], colorToList(color))
 }
 
 func (u *glFragUniforms) setScissorExt(a, b float32) {

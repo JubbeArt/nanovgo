@@ -206,8 +206,8 @@ func (c *glContext) allocTexture() *glTexture {
 }
 
 func (c *glContext) convertPaint(frag *glFragUniforms, paint *Paint, scissor *nvgScissor, width, fringe, strokeThr float32) error {
-	frag.setInnerColor(paint.innerColor.PreMultiply())
-	frag.setOuterColor(paint.outerColor.PreMultiply())
+	frag.setInnerColor(paint.innerColor)
+	frag.setOuterColor(paint.outerColor)
 
 	if scissor.extent[0] < -0.5 || scissor.extent[1] < -0.5 {
 		frag.clearScissorMat()

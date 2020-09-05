@@ -1,6 +1,7 @@
 package nanovgo
 
 import (
+	"image/color"
 	"math"
 )
 
@@ -11,12 +12,12 @@ type Paint struct {
 	extent     [2]float32
 	radius     float32
 	feather    float32
-	innerColor Color
-	outerColor Color
+	innerColor color.Color
+	outerColor color.Color
 	image      int
 }
 
-func (p *Paint) setPaintColor(color Color) {
+func (p *Paint) setPaintColor(color color.Color) {
 	p.xform = IdentityMatrix()
 	p.extent[0] = 0.0
 	p.extent[1] = 0.0
@@ -30,7 +31,7 @@ func (p *Paint) setPaintColor(color Color) {
 // LinearGradient creates and returns a linear gradient. Parameters (sx,sy)-(ex,ey) specify the start and end coordinates
 // of the linear gradient, icol specifies the start color and ocol the end color.
 // The gradient is transformed by the current transform when it is passed to Context.FillPaint() or Context.StrokePaint().
-func LinearGradient(sx, sy, ex, ey float32, iColor, oColor Color) Paint {
+func LinearGradient(sx, sy, ex, ey float32, iColor, oColor color.Color) Paint {
 	var large float32 = 1e5
 	dx := ex - sx
 	dy := ey - sy
@@ -56,7 +57,7 @@ func LinearGradient(sx, sy, ex, ey float32, iColor, oColor Color) Paint {
 // RadialGradient creates and returns a radial gradient. Parameters (cx,cy) specify the center, inr and outr specify
 // the inner and outer radius of the gradient, icol specifies the start color and ocol the end color.
 // The gradient is transformed by the current transform when it is passed to Context.FillPaint() or Context.StrokePaint().
-func RadialGradient(cx, cy, inR, outR float32, iColor, oColor Color) Paint {
+func RadialGradient(cx, cy, inR, outR float32, iColor, oColor color.Color) Paint {
 	r := (inR + outR) * 0.5
 	f := outR - inR
 
@@ -75,7 +76,7 @@ func RadialGradient(cx, cy, inR, outR float32, iColor, oColor Color) Paint {
 // (w,h) define the size of the rectangle, r defines the corner radius, and f feather. Feather defines how blurry
 // the border of the rectangle is. Parameter icol specifies the inner color and ocol the outer color of the gradient.
 // The gradient is transformed by the current transform when it is passed to Context.FillPaint() or Context.StrokePaint().
-func BoxGradient(x, y, w, h, r, f float32, iColor, oColor Color) Paint {
+func BoxGradient(x, y, w, h, r, f float32, iColor, oColor color.Color) Paint {
 	return Paint{
 		xform:      TranslateMatrix(x+w*0.5, y+h*0.5),
 		extent:     [2]float32{w * 0.5, h * 0.5},
@@ -93,12 +94,12 @@ func ImagePattern(cx, cy, w, h, angle float32, img int, alpha float32) Paint {
 	xform := RotateMatrix(angle)
 	xform[4] = cx
 	xform[5] = cy
-	color := RGBAf(1, 1, 1, alpha)
+	col := color.NRGBA{R: 255, G: 255, B: 255, A: uint8(alpha * 255)}
 	return Paint{
 		xform:      xform,
 		extent:     [2]float32{w, h},
 		image:      img,
-		innerColor: color,
-		outerColor: color,
+		innerColor: col,
+		outerColor: col,
 	}
 }

@@ -2,12 +2,14 @@ package nanovgo
 
 import (
 	"bytes"
-	"github.com/shibukawa/nanovgo/fontstashmini"
 	"image"
+	"image/color"
 	_ "image/jpeg" // to read jpeg
 	_ "image/png"  // to read png
 	"log"
 	"os"
+
+	"github.com/shibukawa/nanovgo/fontstashmini"
 )
 
 // Context is an entry point object to use NanoVGo API and created by NewContext() function.
@@ -292,9 +294,9 @@ func (c *Context) SetTransform(t TransformMatrix) {
 //   [a c e]
 //   [b d f]
 //   [0 0 1]
-func (cx *Context) SetTransformByValue(a, b, c, d, e, f float32) {
-	t := TransformMatrix{a, b, c, d, e, f}
-	state := cx.getState()
+func (c *Context) SetTransformByValue(a, b, cc, d, e, f float32) {
+	t := TransformMatrix{a, b, cc, d, e, f}
+	state := c.getState()
 	state.xform = state.xform.PreMultiply(t)
 }
 
@@ -344,7 +346,7 @@ func (c *Context) CurrentTransform() TransformMatrix {
 }
 
 // SetStrokeColor sets current stroke style to a solid color.
-func (c *Context) SetStrokeColor(color Color) {
+func (c *Context) SetStrokeColor(color color.Color) {
 	c.getState().stroke.setPaintColor(color)
 }
 
@@ -356,7 +358,7 @@ func (c *Context) SetStrokePaint(paint Paint) {
 }
 
 // SetFillColor sets current fill style to a solid color.
-func (c *Context) SetFillColor(color Color) {
+func (c *Context) SetFillColor(color color.Color) {
 	c.getState().fill.setPaintColor(color)
 }
 
@@ -371,10 +373,10 @@ func (c *Context) SetFillPaint(paint Paint) {
 // Returns handle to the image.
 func (c *Context) CreateImage(filePath string, flags ImageFlags) int {
 	file, err := os.Open(filePath)
-	defer file.Close()
 	if err != nil {
 		return 0
 	}
+	defer file.Close()
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return 0
@@ -716,10 +718,6 @@ func (c *Context) Fill() {
 		c.cache.expandFill(0.0, Miter, 2.4, c.fringeWidth)
 	}
 
-	// Apply global alpha
-	fillPaint.innerColor.A *= state.alpha
-	fillPaint.outerColor.A *= state.alpha
-
 	c.params.renderFill(&fillPaint, &state.scissor, c.fringeWidth, c.cache.bounds, c.cache.paths)
 
 	// Count triangles
@@ -740,16 +738,8 @@ func (c *Context) Stroke() {
 
 	if strokeWidth < c.fringeWidth {
 		// If the stroke width is less than pixel size, use alpha to emulate coverage.
-		// Since coverage is area, scale by alpha*alpha.
-		alpha := clampF(strokeWidth/c.fringeWidth, 0.0, 1.0)
-		strokePaint.innerColor.A *= alpha * alpha
-		strokePaint.outerColor.A *= alpha * alpha
 		strokeWidth = c.fringeWidth
 	}
-
-	// Apply global alpha
-	strokePaint.innerColor.A *= state.alpha
-	strokePaint.outerColor.A *= state.alpha
 
 	c.flattenPaths()
 	for _, path := range c.cache.paths {
@@ -1541,10 +1531,6 @@ func (c *Context) renderText(vertexes []nvgVertex) {
 
 	// Render triangles
 	paint.image = c.fontImages[c.fontImageIdx]
-
-	// Apply global alpha
-	paint.innerColor.A *= state.alpha
-	paint.outerColor.A *= state.alpha
 
 	c.params.renderTriangleStrip(&paint, &state.scissor, vertexes)
 
