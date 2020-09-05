@@ -272,17 +272,6 @@ func (c *Context) LineJoin() LineCap {
 	return c.getState().lineJoin
 }
 
-// SetGlobalAlpha sets the transparency applied to all rendered shapes.
-// Already transparent paths will get proportionally more transparent as well.
-func (c *Context) SetGlobalAlpha(alpha float32) {
-	c.getState().alpha = alpha
-}
-
-// GlobalAlpha gets the transparency applied to all rendered shapes.
-func (c *Context) GlobalAlpha() float32 {
-	return c.getState().alpha
-}
-
 // SetTransform premultiplies current coordinate system by specified matrix.
 func (c *Context) SetTransform(t TransformMatrix) {
 	state := c.getState()
