@@ -65,22 +65,6 @@ const (
 	AlignBaseline Align = 1 << 6
 )
 
-// ImageFlags is used for setting image object
-type ImageFlags int
-
-const (
-	// ImageGenerateMipmaps generates mipmaps during creation of the image.
-	ImageGenerateMipmaps ImageFlags = 1 << 0
-	// ImageRepeatX repeats image in X direction.
-	ImageRepeatX ImageFlags = 1 << 1
-	// ImageRepeatY repeats image in X direction.
-	ImageRepeatY ImageFlags = 1 << 2
-	// ImageFlippy flips (inverses) image in Y direction when rendered.
-	ImageFlippy ImageFlags = 1 << 3
-	// ImagePreMultiplied specifies image data has premultiplied alpha.
-	ImagePreMultiplied ImageFlags = 1 << 4
-)
-
 // Winding is used for changing filling strategy
 type Winding int
 

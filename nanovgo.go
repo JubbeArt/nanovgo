@@ -4,15 +4,13 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	_ "image/jpeg" // to read jpeg
-	_ "image/png"  // to read png
 	"log"
 
 	"github.com/shibukawa/nanovgo/fontstashmini"
 )
 
 type Context struct {
-	params         nvgParams
+	gl             *glContext
 	commands       []float32
 	commandX       float32
 	commandY       float32
@@ -39,7 +37,8 @@ func (c *Context) Delete() {
 			c.fontImages[i] = 0
 		}
 	}
-	c.params.renderDelete()
+	c.gl.renderDelete()
+	c.gl = nil
 }
 
 // BeginFrame begins drawing a new frame
@@ -56,7 +55,7 @@ func (c *Context) BeginFrame(windowWidth, windowHeight int, devicePixelRatio flo
 	c.getState().reset()
 
 	c.setDevicePixelRatio(devicePixelRatio)
-	c.params.renderViewport(windowWidth, windowHeight)
+	c.gl.renderViewport(windowWidth, windowHeight)
 
 	c.drawCallCount = 0
 	c.fillTriCount = 0
@@ -66,7 +65,7 @@ func (c *Context) BeginFrame(windowWidth, windowHeight int, devicePixelRatio flo
 
 // EndFrame ends drawing flushing remaining render state.
 func (c *Context) EndFrame() {
-	c.params.renderFlush()
+	c.gl.renderFlush()
 	if c.fontImageIdx != 0 {
 		fontImage := c.fontImages[c.fontImageIdx]
 		if fontImage == 0 {
@@ -174,7 +173,7 @@ func (c *Context) SetFillImage() {
 
 // CreateImageFromGoImage creates image by loading it from the specified image.Image object.
 // Returns handle to the image.
-func (c *Context) CreateImage(imageFlag ImageFlags, img image.Image) int {
+func (c *Context) CreateImage(img image.Image) int {
 	bounds := img.Bounds()
 	size := bounds.Size()
 
@@ -187,17 +186,17 @@ func (c *Context) CreateImage(imageFlag ImageFlags, img image.Image) int {
 		rgba = image.NewRGBA(bounds)
 		draw.Draw(rgba, bounds, img, bounds.Min, draw.Src)
 	}
-	return c.params.renderCreateTexture(nvgTextureRGBA, size.X, size.Y, imageFlag, rgba.Pix)
+	return c.gl.renderCreateTexture(nvgTextureRGBA, size.X, size.Y, rgba.Pix)
 }
 
 // ImageSize returns the dimensions of a created image.
 func (c *Context) ImageSize(img int) (int, int, error) {
-	return c.params.renderGetTextureSize(img)
+	return c.gl.renderGetTextureSize(img)
 }
 
 // DeleteImage deletes created image.
 func (c *Context) DeleteImage(img int) {
-	c.params.renderDeleteTexture(img)
+	c.gl.renderDeleteTexture(img)
 }
 
 // Scissor sets the current scissor rectangle.
@@ -337,13 +336,13 @@ func (c *Context) Fill() {
 	fillPaint := state.fill
 	c.flattenPaths()
 
-	if c.params.edgeAntiAlias() {
+	if c.gl.edgeAntiAlias() {
 		c.cache.expandFill(c.fringeWidth, Miter, 2.4, c.fringeWidth)
 	} else {
 		c.cache.expandFill(0.0, Miter, 2.4, c.fringeWidth)
 	}
 
-	c.params.renderFill(&fillPaint, &state.scissor, c.fringeWidth, c.cache.bounds, c.cache.paths)
+	c.gl.renderFill(&fillPaint, &state.scissor, c.fringeWidth, c.cache.bounds, c.cache.paths)
 
 	// Count triangles
 	for i := 0; i < len(c.cache.paths); i++ {
@@ -376,12 +375,12 @@ func (c *Context) Stroke() {
 	const lineCap = Butt
 	const lineJoin = Miter // or Round
 
-	if c.params.edgeAntiAlias() {
+	if c.gl.edgeAntiAlias() {
 		c.cache.expandStroke(strokeWidth*0.5+c.fringeWidth*0.5, lineCap, lineJoin, miterLimit, c.fringeWidth, c.tessTol)
 	} else {
 		c.cache.expandStroke(strokeWidth*0.5, lineCap, lineJoin, miterLimit, c.fringeWidth, c.tessTol)
 	}
-	c.params.renderStroke(&strokePaint, &state.scissor, c.fringeWidth, strokeWidth, c.cache.paths)
+	c.gl.renderStroke(&strokePaint, &state.scissor, c.fringeWidth, strokeWidth, c.cache.paths)
 
 	// Count triangles
 	for i := 0; i < len(c.cache.paths); i++ {
@@ -681,7 +680,7 @@ func (c *Context) flushTextTexture() {
 			y := dirty[1]
 			w := dirty[2] - x
 			h := dirty[3] - y
-			c.params.renderUpdateTexture(fontImage, x, y, w, h, data)
+			c.gl.renderUpdateTexture(fontImage, x, y, w, h, data)
 		}
 	}
 }
@@ -706,7 +705,7 @@ func (c *Context) allocTextAtlas() bool {
 			iw = nvgMaxFontImageSize
 			ih = nvgMaxFontImageSize
 		}
-		c.fontImages[c.fontImageIdx+1] = c.params.renderCreateTexture(nvgTextureALPHA, iw, ih, 0, nil)
+		c.fontImages[c.fontImageIdx+1] = c.gl.renderCreateTexture(nvgTextureALPHA, iw, ih, nil)
 	}
 	c.fontImageIdx++
 	c.fs.ResetAtlas(iw, ih)
@@ -720,7 +719,7 @@ func (c *Context) renderText(vertexes []nvgVertex) {
 	// Render triangles
 	paint.image = c.fontImages[c.fontImageIdx]
 
-	c.params.renderTriangleStrip(&paint, &state.scissor, vertexes)
+	c.gl.renderTriangleStrip(&paint, &state.scissor, vertexes)
 
 	c.drawCallCount++
 	c.textTriCount += len(vertexes) / 3

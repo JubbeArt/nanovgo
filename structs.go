@@ -6,23 +6,6 @@ import (
 	"github.com/shibukawa/nanovgo/fontstashmini"
 )
 
-type nvgParams interface {
-	edgeAntiAlias() bool
-	renderCreate() error
-	renderCreateTexture(texType nvgTextureType, w, h int, flags ImageFlags, data []byte) int
-	renderDeleteTexture(image int) error
-	renderUpdateTexture(image, x, y, w, h int, data []byte) error
-	renderGetTextureSize(image int) (int, int, error)
-	renderViewport(width, height int)
-	renderCancel() // TODO: remove
-	renderFlush()
-	renderFill(paint *Paint, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath)
-	renderStroke(paint *Paint, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath)
-	renderTriangles(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex)
-	renderTriangleStrip(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex)
-	renderDelete()
-}
-
 type nvgPoint struct {
 	x, y     float32
 	dx, dy   float32
@@ -265,7 +248,7 @@ func (c *nvgPathCache) calculateJoins(w float32, lineJoin LineCap, miterLimit fl
 				p1 = &points[p1Index]
 			}
 		}
-		path.convex = (nLeft == path.count)
+		path.convex = nLeft == path.count
 	}
 }
 
@@ -495,22 +478,4 @@ func (c *nvgPathCache) expandFill(w float32, lineJoin LineCap, miterLimit, fring
 			path.strokes = path.strokes[:0]
 		}
 	}
-}
-
-// GlyphPosition keeps glyph location information
-type GlyphPosition struct {
-	Index      int // Position of the glyph in the input string.
-	Runes      []rune
-	X          float32 // The x-coordinate of the logical glyph position.
-	MinX, MaxX float32 // The bounds of the glyph shape.
-}
-
-// TextRow keeps row geometry information
-type TextRow struct {
-	Runes      []rune  // The input string.
-	StartIndex int     // Index to the input text where the row starts.
-	EndIndex   int     // Index to the input text where the row ends (one past the last character).
-	NextIndex  int     // Index to the beginning of the next row.
-	Width      float32 // Logical width of the row.
-	MinX, MaxX float32 // Actual bounds of the row. Logical with and bounds can differ because of kerning and some parts over extending.
 }

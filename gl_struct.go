@@ -1,8 +1,9 @@
 package nanovgo
 
 import (
-	"github.com/goxjs/gl"
 	"image/color"
+
+	"github.com/goxjs/gl"
 )
 
 const (
@@ -119,5 +120,4 @@ type glTexture struct {
 	tex           gl.Texture
 	width, height int
 	texType       nvgTextureType
-	flags         ImageFlags
 }
